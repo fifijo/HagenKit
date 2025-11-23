@@ -7,6 +7,8 @@ import { toSidebarUser } from "@/types/user";
 import { getImpersonationStatus } from "@/app/actions/admin/impersonate";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminLayout({
   children,
 }: {

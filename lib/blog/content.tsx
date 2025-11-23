@@ -52,7 +52,6 @@ export const POPULAR_ARTICLES = [
   "what-is-social-forge",
   "organize-with-labels",
   "azure-saml-sso",
-  "verdivurdering-av-naringseiendom",
 ];
 
 export const HELP_CATEGORIES: {
