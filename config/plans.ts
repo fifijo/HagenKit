@@ -15,7 +15,6 @@ export interface Plan {
   };
   features: PlanFeature[];
   polarProductId?: string;
-  polarPriceId?: string;
   stripePriceId?: string;
   isPopular?: boolean;
 }
@@ -37,8 +36,7 @@ export const PLANS: Plan[] = [
       { text: "Priority support", included: true },
       { text: "Custom domain", included: true },
     ],
-    polarProductId: process.env.NEXT_PUBLIC_POLAR_PRO_PRODUCT_ID, // Add these to env if dynamic, or hardcode
-    polarPriceId: process.env.NEXT_PUBLIC_POLAR_PRO_PRICE_ID,
+    polarProductId: process.env.NEXT_PUBLIC_POLAR_PRO_PRODUCT_ID,
     isPopular: true,
   },
   {
@@ -58,6 +56,5 @@ export const PLANS: Plan[] = [
       { text: "Custom domain", included: false },
     ],
     polarProductId: process.env.NEXT_PUBLIC_POLAR_STARTER_PRODUCT_ID,
-    polarPriceId: process.env.NEXT_PUBLIC_POLAR_STARTER_PRICE_ID,
   },
 ];

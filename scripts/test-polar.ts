@@ -40,24 +40,22 @@ function checkEnvVars(): boolean {
 
 async function testPolarConnection() {
   console.log("🔌 Testing Polar API connection...\n");
-  
+
   try {
     const client = new Polar({
       accessToken: process.env.POLAR_ACCESS_TOKEN,
       server: process.env.POLAR_SERVER === "production" ? "production" : "sandbox",
     });
 
-    // Test connection by listing products
-    const productsIterator = await client.products.list({
+    // Test connection by attempting to list products
+    // The actual iteration will happen in listProducts()
+    await client.products.list({
       organizationId: process.env.POLAR_ORG_ID,
     });
 
-    // Get first page to test connection
-    const firstPage = await productsIterator.next();
-    
     console.log(`✅ Successfully connected to Polar ${process.env.POLAR_SERVER} API`);
     console.log(`📦 Found products in organization\n`);
-    
+
     return { client };
   } catch (error: any) {
     console.error("❌ Failed to connect to Polar API");
@@ -68,16 +66,14 @@ async function testPolarConnection() {
 
 async function listProducts(client: Polar) {
   console.log("📋 Listing available products...\n");
-  
+
   try {
-    const productsIterator = await client.products.list({
+    const response = await client.products.list({
       organizationId: process.env.POLAR_ORG_ID,
     });
 
-    const allProducts = [];
-    for await (const product of productsIterator) {
-      allProducts.push(product);
-    }
+    // Check if response has items array (paginated response)
+    const allProducts = response.items || response.result?.items || [];
 
     if (allProducts.length === 0) {
       console.log("⚠️  No products found. Create some in your Polar dashboard first.");
@@ -87,11 +83,11 @@ async function listProducts(client: Polar) {
     allProducts.forEach((product: any, index: number) => {
       console.log(`${index + 1}. ${product.name}`);
       console.log(`   ID: ${product.id}`);
-      console.log(`   Type: ${product.type || 'N/A'}`);
-      console.log(`   Status: ${product.isArchived ? 'Archived' : 'Active'}`);
+      console.log(`   Type: ${product.is_recurring ? 'Subscription (' + (product.recurring_interval || 'N/A') + ')' : 'One-time'}`);
+      console.log(`   Status: ${product.is_archived ? 'Archived' : 'Active'}`);
       console.log("");
     });
-    
+
     return allProducts;
   } catch (error: any) {
     console.error("❌ Failed to list products");
