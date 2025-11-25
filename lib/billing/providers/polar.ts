@@ -86,8 +86,23 @@ export class PolarBillingProvider implements BillingProvider {
       }));
     } catch (error) {
       console.error("Polar list subscriptions error:", error);
+
+      // Detect 401 invalid token errors
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (
+        errorMessage.includes("401") ||
+        errorMessage.includes("invalid_token") ||
+        errorMessage.includes("expired") ||
+        errorMessage.includes("revoked")
+      ) {
+        throw new BillingError(
+          "Your Polar access token is expired, revoked, or invalid.",
+          "INVALID_CREDENTIALS"
+        );
+      }
+
       throw new BillingError(
-        error instanceof Error ? error.message : "Failed to list subscriptions",
+        errorMessage || "Failed to list subscriptions",
         "LIST_SUBSCRIPTIONS_FAILED"
       );
     }

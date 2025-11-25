@@ -52,6 +52,69 @@ export interface ValidationResult {
 }
 
 /**
+ * Client-safe billing status (no secrets exposed)
+ */
+export interface BillingStatus {
+  enabled: boolean;
+  configured: boolean;
+  provider: BillingProvider;
+  mode: "sandbox" | "production" | null;
+  configErrors: string[];
+}
+
+/**
+ * Get billing status for client consumption (safe to expose)
+ * This function returns configuration state without exposing any secrets.
+ */
+export function getBillingStatus(): BillingStatus {
+  const configErrors: string[] = [];
+
+  // If billing is not enabled, return early
+  if (!billingConfig.enabled) {
+    return {
+      enabled: false,
+      configured: false,
+      provider: billingConfig.provider,
+      mode: null,
+      configErrors: [],
+    };
+  }
+
+  // Check configuration based on provider
+  let configured = true;
+  let mode: "sandbox" | "production" | null = null;
+
+  if (billingConfig.provider === "polar") {
+    if (!billingConfig.polar.accessToken) {
+      configured = false;
+      configErrors.push("POLAR_ACCESS_TOKEN is not set");
+    }
+    mode = billingConfig.polar.server;
+  } else if (billingConfig.provider === "stripe") {
+    if (!billingConfig.stripe.secretKey) {
+      configured = false;
+      configErrors.push("STRIPE_SECRET_KEY is not set");
+    }
+    if (!billingConfig.stripe.publicKey) {
+      configErrors.push("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set");
+    }
+    // Stripe doesn't have sandbox/production mode in the same way
+    mode = "production";
+  } else if (billingConfig.provider === "none") {
+    configured = false;
+    configErrors.push("BILLING_PROVIDER is set to 'none' but billing is enabled");
+  }
+
+  return {
+    enabled: billingConfig.enabled,
+    configured,
+    provider: billingConfig.provider,
+    mode,
+    configErrors,
+  };
+}
+
+/**
  * Check if billing is enabled on the client side (only uses public env vars)
  * This is safe to use in browser context
  */
