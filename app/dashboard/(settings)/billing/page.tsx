@@ -81,8 +81,6 @@ export default function BillingPage() {
         const timeLeft = animationEnd - Date.now();
         if (timeLeft <= 0) {
           clearInterval(interval);
-          // Clean up URL after confetti finishes (no navigation trigger)
-          window.history.replaceState(null, "", "/dashboard/billing");
           return;
         }
         const particleCount = 50 * (timeLeft / duration);
@@ -376,28 +374,29 @@ export default function BillingPage() {
         </div>
         <SandboxBanner />
         <div className="border-t border-border pt-6">
-          {isSubscribed ? (
-            <div className="rounded-md border p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Current Subscription</p>
-                  <p className="text-sm text-muted-foreground">
-                    You are currently subscribed to{" "}
-                    {activeSubscription.productName || "a plan"}.
-                  </p>
-                </div>
-                <PortalButton />
-              </div>
-            </div>
-          ) : (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {PLANS.map((plan) => (
-                <div key={plan.id} className="rounded-md border p-4">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {PLANS.map((plan) => {
+              const isCurrentPlan =
+                activeSubscription?.productId === plan.polarProductId;
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`rounded-md border p-4 ${
+                    isCurrentPlan ? "border-primary ring-1 ring-primary" : ""
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{plan.name}</h4>
-                    <span className="text-sm font-medium">
-                      {plan.price.displayAmount}
-                    </span>
+                    {isCurrentPlan ? (
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                        Current Plan
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium">
+                        {plan.price.displayAmount}
+                      </span>
+                    )}
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {plan.description}
@@ -415,17 +414,23 @@ export default function BillingPage() {
                     ))}
                   </ul>
                   <div className="mt-6">
-                    <BillingCTA
-                      planId={plan.polarProductId || ""}
-                      className="w-full"
-                    >
-                      Upgrade to {plan.name}
-                    </BillingCTA>
+                    {isCurrentPlan ? (
+                      <PortalButton className="w-full" />
+                    ) : (
+                      <BillingCTA
+                        planId={plan.polarProductId || ""}
+                        className="w-full"
+                      >
+                        {isSubscribed
+                          ? `Switch to ${plan.name}`
+                          : `Upgrade to ${plan.name}`}
+                      </BillingCTA>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
